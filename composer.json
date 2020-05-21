@@ -1,0 +1,26 @@
+{
+    "name": "lyhiving/swoolefilesync",
+    "type": "library",
+    "description": "Swoole file sync system",
+    "keywords": [
+        "swoole",
+        "sync"
+    ],
+    "homepage": "https://github.com/lyhiving/SwooleFileSync",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "lyhiving",
+            "email": "lyhiving@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "lyhiving/zip": "^3.3.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Swoole\\ToolKit\\": "src/"
+        }
+    }
+}

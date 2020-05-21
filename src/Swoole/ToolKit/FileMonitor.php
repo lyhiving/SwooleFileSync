@@ -14,7 +14,7 @@ class FileMonitor
     protected $server;
     protected $conf;
     //默认监测所有文件，如果 为true 则只监控和此文件有关的变化
-    protected $FileTypes  = array('.php' => false);
+    protected $FileTypes = array('.php' => false);
     protected $watchFiles = array();
     protected $events;
     /**
@@ -34,9 +34,9 @@ class FileMonitor
      */
     public function __construct($conf)
     {
-        $this->conf  = $conf;
+        $this->conf = $conf;
         $this->inotify = inotify_init();
-        $this->events  = IN_CLOSE_WRITE | IN_DELETE | IN_CREATE | IN_MOVE | IN_ATTRIB | IN_MOVE | IN_ISDIR | IN_ONLYDIR;
+        $this->events = IN_CLOSE_WRITE | IN_DELETE | IN_CREATE | IN_MOVE | IN_ATTRIB | IN_MOVE | IN_ISDIR | IN_ONLYDIR;
         // $this->events =  IN_ATTRIB | IN_CREATE | IN_DELETE | IN_DELETE_SELF | IN_MODIFY | IN_MOVE;
         // $this->events = IN_MODIFY | IN_DELETE | IN_CREATE | IN_MOVE;
         // $this->events = IN_ALL_EVENTS;
@@ -55,12 +55,12 @@ class FileMonitor
                         //continue;
                     }
                     switch ($ev['mask']) {
-                        case IN_CREATE:$this->str            = '创建';break;
+                        case IN_CREATE:$this->str = '创建';break;
                         case IN_CREATE | IN_ISDIR:$this->str = '创建目录';break;
-                        case IN_DELETE:$this->str            = '删除';break;
+                        case IN_DELETE:$this->str = '删除';break;
                         case IN_DELETE | IN_ISDIR:$this->str = '删除目录';break;
-                        case IN_CLOSE_WRITE:$this->str       = '修改';break;
-                        case IN_MOVED_FROM:$this->str        = '重命名 ' . $ev['name'];break;
+                        case IN_CLOSE_WRITE:$this->str = '修改';break;
+                        case IN_MOVED_FROM:$this->str = '重命名 ' . $ev['name'];break;
                         case IN_MOVED_TO:$this->str .= ' 为';break;
                     }
 
@@ -102,7 +102,7 @@ class FileMonitor
      */
     public function addFileType($type)
     {
-        $type                         = trim($type, '.');
+        $type = trim($type, '.');
         $this->FileTypes['.' . $type] = true;
     }
     /**
@@ -143,9 +143,9 @@ class FileMonitor
         if ($root) {
             $this->rootDirs[] = $dir;
         }
-        $wd                     = inotify_add_watch($this->inotify, $dir, $this->events);
+        $wd = inotify_add_watch($this->inotify, $dir, $this->events);
         $this->watchFiles[$dir] = $wd;
-        $files                  = scandir($dir);
+        $files = scandir($dir);
         foreach ($files as $f) {
             if ($f == '.' or $f == '..') {
                 continue;
@@ -158,7 +158,7 @@ class FileMonitor
             //检测文件类型
             $fileType = strrchr($f, '.');
             if (isset($this->FileTypes[$fileType]) && $this->FileTypes[$fileType]) {
-                $wd                      = inotify_add_watch($this->inotify, $path, $this->events);
+                $wd = inotify_add_watch($this->inotify, $path, $this->events);
                 $this->watchFiles[$path] = $wd;
             }
         }

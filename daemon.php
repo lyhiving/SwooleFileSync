@@ -5,10 +5,13 @@ $param  = getopt('t:o:');
 $type   = $param['t'];
 $option = $param['o'];
 
+$func = new ReflectionClass('Swoole\ToolKit\FileMonitor');
+$src = dirname($func->getFileName());
+var_dump( $func->getFileName());
+
 if ($type == 's') {
     if($option == 'start'){
-        $fileMonitorPath = __DIR__ . '/src/Swoole/ToolKit/FileMonitor.php';
-        $sourceFileServerPath = __DIR__ . '/SourceFileServer.php';
+        $sourceFileServerPath = $src.'/SourceFileServer.php';
         $cmd  = $conf['cmd'];
         //先启动 SourceFileServer
         $process = new swoole_process(function (swoole_process $process) use ($cmd, $sourceFileServerPath) {
@@ -17,7 +20,7 @@ if ($type == 's') {
         $process->start();
         //文件监控
         $process = new swoole_process(function (swoole_process $process) use ($conf, $fileMonitorPath) {
-            require $fileMonitorPath;
+            require_once $src.'/FileMonitor.php';
             $kit = new Swoole\ToolKit\FileMonitor($conf);
             $dir = $conf['FileMonitorDir'];
             $kit->watch($dir);
@@ -26,12 +29,14 @@ if ($type == 's') {
         $process->start();
         $process->daemon();
     } elseif($option == 'stop') {
+        @exec('ps -ef|grep SourceFileServer.php|grep -v grep|cut -c 9-15|xargs kill -9');
         $process = new swoole_process(function (swoole_process $process) {
             exec('ps -ef|grep daemon.php|grep -v grep|cut -c 9-15|xargs kill -9');
         }, true);
         $process->start();
         echo $process->read().PHP_EOL;
         $process = new swoole_process(function (swoole_process $process) {
+            echo "Kill node".PHP_EOL;
             exec('ps -ef|grep SourceFileServer.php|grep -v grep|cut -c 9-15|xargs kill -9');
         }, true);
         $process->start();
@@ -40,8 +45,7 @@ if ($type == 's') {
 } elseif($type == 'c') {
     if($option == 'start'){
         $port = $conf['FileSyncClient']['0']['port'];
-        require __DIR__ . '/FileSyncClient.php';
-        new FileSyncClient($port);
+        new Swoole\ToolKit\FileSyncClient($port);
     } elseif($option == 'stop') {
         exec('ps -ef|grep daemon.php|grep -v grep|cut -c 9-15|xargs kill -9');
     }

@@ -1,19 +1,21 @@
 <?php
+namespace Swoole\ToolKit;
+
 class FileSyncClient
 {
     private $serv;
-    
+
     public function __construct($port)
     {
         date_default_timezone_set('PRC');
         $this->serv = new \swoole_server('0.0.0.0', $port);
         $this->serv->set(array(
-            'worker_num'       => 8,
-            'daemonize'        => true,
-            'max_request'      => 10000,
-            'dispatch_mode'    => 1,
-            'debug_mode'       => 1,
-            'task_worker_num'  => 10,
+            'worker_num' => 8,
+            'daemonize' => true,
+            'max_request' => 10000,
+            'dispatch_mode' => 1,
+            'debug_mode' => 1,
+            'task_worker_num' => 10,
             // 'log_file' => '/tmp/swoole.log',
             "socketbuffersize" => 200 * 1024 * 1024,
             'open_length_check' => true,
@@ -71,7 +73,7 @@ class FileSyncClient
                 unlink($filename);
                 return;
             }
-            $path    = explode('/', $filename);
+            $path = explode('/', $filename);
             array_pop($path);
             $dirPath = implode('/', $path);
             if (!is_dir($dirPath)) {

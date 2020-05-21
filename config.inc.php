@@ -1,10 +1,12 @@
 <?php
 $conf = [
-    'SourceFileServer' => ['host' => '192.168.8.152', 'port' => 9657],
-    'FileSyncClient'   => [
-        ['host' => '192.168.8.98', 'port' => 9656],
-        ['host' => '192.168.8.164', 'port' => 9656],
+    'SourceFileServer' => ['host' => '127.0.0.1', 'port' => 9657],
+    'FileSyncClient' => [
+        ['host' => '127.0.0.1', 'port' => 9656],
     ],
-    'FileMonitorDir'   => '/data/synctest/',
-    'cmd'              => '/usr/local/bin/php',
+    'BaseDir' => __DIR__,
+    'FileMonitorDir' => dirname(__DIR__) . '/download',
+    'FileAction' => ['hook' => 'unzipAndMove', 'done' => true],
+    'log_file' => __DIR__.'/swoole.log',
+    'cmd' => '/usr/bin/php',
 ];

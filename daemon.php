@@ -6,10 +6,10 @@ $type   = $param['t'];
 $option = $param['o'];
 
 
-$func = new ReflectionClass('FileMonitor');
+$func = new ReflectionClass('Swoole\ToolKit\FileMonitor');
 $src = dirname($func->getFileName());
 
-require $src. '/config.inc.php';
+require dirname($src). '/config.inc.php';
 
 if ($type == 's') {
     if($option == 'start'){

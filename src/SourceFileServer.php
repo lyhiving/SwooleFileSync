@@ -8,7 +8,7 @@ class SourceFileServer
     public function __construct()
     {
         date_default_timezone_set('PRC');
-        require __DIR__ . '/config.inc.php';
+        require dirname(__DIR__) . '/config.inc.php';
         $this->conf = $conf;
         $this->serv = new \swoole_server($this->conf['SourceFileServer']['host'], $this->conf['SourceFileServer']['port']);
         $serv_conf = array(
@@ -158,4 +158,4 @@ class SourceFileServer
     }
 }
 
-new Swoole\ToolKit\SourceFileServer();
+new SourceFileServer();

@@ -1,13 +1,15 @@
-<?php
-require __DIR__ . '/config.inc.php';
+<?php 
+require_once __DIR__ . '/vendor/autoload.php';
 
 $param  = getopt('t:o:');
 $type   = $param['t'];
 $option = $param['o'];
 
-$func = new ReflectionClass('Swoole\ToolKit\FileMonitor');
+
+$func = new ReflectionClass('FileMonitor');
 $src = dirname($func->getFileName());
-var_dump( $func->getFileName());
+
+require $src. '/config.inc.php';
 
 if ($type == 's') {
     if($option == 'start'){

@@ -50,7 +50,7 @@ try {
     $zipFile = new \PhpZip\ZipFile(); 
     $dir = $target . $id. '/' . $id;
     $zipFile->addDirRecursive(is_dir($dir) ? $dir : $target);
-    $zipFile->addFromString('README.txt', 'Test file') // add a new entry from the string
+    $zipFile->addFromString('我来自外面.txt', 'Test file') // add a new entry from the string
         ->saveAsFile($upload . basename($zipfile));
     $self->rrmdir($target);
 } catch (\PhpZip\Exception\ZipException $e) {

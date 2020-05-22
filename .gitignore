@@ -4,3 +4,4 @@ unzip.php
 zip.php
 swoole.log
 hooks_unzipAndMove.php
+config.inc.php

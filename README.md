@@ -51,6 +51,9 @@ $conf = [
  cp daemon.php ../../../daemon.php
  cp hooks_unzipAndMoveSample.php ../../../hooks_unzipAndMove.php
  cp config.sample.php ../../../config.inc.php
+ cp config.inc.sample.php config.inc.php
 ```
 
-然后对应修改config.inc.php 里面的unzipAndMoveSample 到 unzipAndMove，并针对相应的文件进行调整即可。
+然后对应修改：
+- 当前目录下的config.inc.php 的路径指向，这种情况下，默认路径是正确的。
+- 工作目录下的config.inc.php 里面的unzipAndMoveSample 到 unzipAndMove，并针对相应的文件进行调整即可。

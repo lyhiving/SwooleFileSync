@@ -1,7 +1,7 @@
 <?php
 
-if (!isset($param)) {
-    $info = "\$param is not set...";
+if (!isset($hook)) {
+    $info = "\$hook is not set...";
     $_ENV['debug']->log('swoole:onHook:' . $hook.': '.$info);
     echo $info . PHP_EOL;
     return false;

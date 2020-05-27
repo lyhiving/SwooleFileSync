@@ -71,8 +71,11 @@ class SourceFileServer
         if ($this->conf['FileAction'] && $this->conf['FileAction']['hook']) {
             $hook = $this->conf['FileAction']['hook'];
             $done = $this->conf['FileAction'] && isset($this->conf['FileAction']['done']) ? $this->conf['FileAction']['done'] : true;
+            $self = $this;
+            if (is_file($this->conf['BaseDir'] . '/hooks.php')) {
+                require $this->conf['BaseDir'] . '/hooks.php';
+            }
             if (is_file($this->conf['BaseDir'] . '/hooks_' . $hook . '.php')) {
-                $self = $this;
                 require $this->conf['BaseDir'] . '/hooks_' . $hook . '.php';
             }
             if (!$done && $hook != 'sendToClient') {

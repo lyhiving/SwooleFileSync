@@ -1,5 +1,6 @@
 <?php
 namespace Swoole\ToolKit;
+
 class SourceFileServer
 {
     private $serv;
@@ -8,9 +9,9 @@ class SourceFileServer
     public function __construct()
     {
         date_default_timezone_set('PRC');
-        if(is_file(dirname(__DIR__) . '/config.inc.php')){
+        if (is_file(dirname(__DIR__) . '/config.inc.php')) {
             require dirname(__DIR__) . '/config.inc.php';
-        }else{
+        } else {
             require dirname(__DIR__) . '/config.sample.php';
         }
         $this->conf = $conf;
@@ -23,7 +24,8 @@ class SourceFileServer
             'debug_mode' => 1,
             'task_worker_num' => 1,
             // 'log_file' => '/tmp/swoole.log',
-            "socketbuffersize" => 200 * 1024 * 1024,
+            'log_level' => 1,
+            'socketbuffersize' => 200 * 1024 * 1024,
             // 'open_length_check'     => true,
             'package_max_length' => 20 * 1024 * 1024,
             // 'package_length_type'   => 'N',
@@ -31,11 +33,10 @@ class SourceFileServer
             // 'package_body_offset'   => 4,
 
         );
-        if($this->conf['log_file']){
-            $serv_conf['log_file'] = $this->conf['log_file'];
-            $serv_conf['log_level'] = $this->conf['log_level'] ? $this->conf['log_level'] :1;
+        if ($this->conf['serverConf']) {
+            $serv_conf = array_merge($serv_conf, $this->conf['serverConf']);
         }
-        $this->serv->set( $serv_conf);
+        $this->serv->set($serv_conf);
         $this->serv->on('WorkerStart', array($this, 'onWorkerStart'));
         $this->serv->on('Close', array($this, 'onClose'));
         $this->serv->on('Receive', array($this, 'onReceive'));
@@ -46,42 +47,47 @@ class SourceFileServer
 
     public function onWorkerStart($serv, $worker_id)
     {
-        echo "worker_id==>" . $worker_id . PHP_EOL;
-
+        $_ENV['debug']->log('swoole:worker:start', $worker_id);
     }
 
     public function onClose($serv, $fd, $from_id)
     {
-        echo "Client {$fd} close connection\n";
+        $_ENV['debug']->log('swoole:client:close', $fd);
     }
 
-    public function onReceive($serv, $fd, $from_id, $str)
+    public function onReceive($serv, $fd, $from_id, $meta)
     {
-        echo $str . PHP_EOL;
-        $serv->task($str); //投递task任务
-        // $serv->send($fd, $str ? true : false);
+        $serv->task($meta); //投递task任务
+        // $serv->send($fd, $meta ? true : false);
     }
 
-    public function onTask($serv, $task_id, $from_id, $param)
+    public function onTask($serv, $task_id, $from_id, $meta)
     {
-        echo "onTask..." . $task_id . PHP_EOL;
+        $meta = json_decode($meta, true);
+        $param = $meta['file'];
         $hook = 'sendToClient';
+
+        $_ENV['debug']->log('swoole:onTask:task', 'task_id_'.$task_id.": ".$param);
         if ($this->conf['FileAction'] && $this->conf['FileAction']['hook']) {
             $hook = $this->conf['FileAction']['hook'];
-            $done = $this->conf['FileAction'] && isset($this->conf['FileAction']['done']) ? $this->conf['FileAction']['done']:true;
-            if(is_file($this->conf['BaseDir'].'/hooks_'.$hook.'.php')){
+            $done = $this->conf['FileAction'] && isset($this->conf['FileAction']['done']) ? $this->conf['FileAction']['done'] : true;
+            if (is_file($this->conf['BaseDir'] . '/hooks_' . $hook . '.php')) {
                 $self = $this;
-                require $this->conf['BaseDir'].'/hooks_'.$hook.'.php';
+                require $this->conf['BaseDir'] . '/hooks_' . $hook . '.php';
             }
-            if(!$done && $hook!='sendToClient') $this->sendToClient($param);
-        }else{
+            if (!$done && $hook != 'sendToClient') {
+                $this->sendToClient($param);
+            }
+
+        } else {
             $this->sendToClient($param);
         }
-        
+
         return $task_id;
     }
 
-    public function rrmdir($src){
+    public function rrmdir($src)
+    {
         $dir = opendir($src);
         while (false !== ($file = readdir($dir))) {
             if (($file != '.') && ($file != '..')) {
@@ -97,20 +103,26 @@ class SourceFileServer
         rmdir($src);
     }
 
-    public function transcoding($filename, $iswin=null){
-        $encodes = ['UTF-8','GBK','BIG5','CP936'];
-        $encoding = mb_detect_encoding($filename,$encodes);
-        if($encoding == 'UTF-8') return $filename;
-        if(is_null($iswin)) $iswin = DIRECTORY_SEPARATOR == '/';  //linux
-        $encoding = mb_detect_encoding($filename,['UTF-8','GBK','BIG5','CP936']);
-        if ($iswin){    //linux
-            $filename = iconv($encoding,'UTF-8',$filename);
-        }else{  //win
-            $filename = iconv($encoding,'GBK',$filename);
+    public function transcoding($filename, $iswin = null)
+    {
+        $encodes = ['UTF-8', 'GBK', 'BIG5', 'CP936'];
+        $encoding = mb_detect_encoding($filename, $encodes);
+        if ($encoding == 'UTF-8') {
+            return $filename;
+        }
+
+        if (is_null($iswin)) {
+            $iswin = DIRECTORY_SEPARATOR == '/';
+        }
+        //linux
+        $encoding = mb_detect_encoding($filename, ['UTF-8', 'GBK', 'BIG5', 'CP936']);
+        if ($iswin) { //linux
+            $filename = iconv($encoding, 'UTF-8', $filename);
+        } else { //win
+            $filename = iconv($encoding, 'GBK', $filename);
         }
         return $filename;
     }
-
 
     public function unzipAndMove($filename)
     {
@@ -124,7 +136,7 @@ class SourceFileServer
 
     public function onFinish($serv, $task_id, $param)
     {
-        echo "onFinish==>" . $task_id . PHP_EOL;
+        $_ENV['debug']->log('swoole:task:finish', $task_id);
     }
 
     public function sendToClient($filename)

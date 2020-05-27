@@ -11,6 +11,8 @@ class FileMonitor
      */
     protected $inotify;
     protected $str;
+    protected $case;
+    protected $isfolder = 0;
     protected $server;
     protected $conf;
     //默认监测所有文件，如果 为true 则只监控和此文件有关的变化
@@ -24,9 +26,7 @@ class FileMonitor
     protected $rootDirs = array();
     public function putLog($log)
     {
-        $_log = "[" . date('Y-m-d H:i:s') . "] " . get_current_user() . " " . $log;
-        echo $_log . PHP_EOL;
-        // file_put_contents("/tmp/file_monitor_log", $_log . PHP_EOL, FILE_APPEND);
+        $_ENV['debug']->log('swoole:filemonitor', $log);
     }
     /**
      * @param $serverPid
@@ -45,6 +45,7 @@ class FileMonitor
             if (!$events) {
                 return;
             }
+            $doncases = array('created', 'delete', 'moveend');
             foreach ($events as $ev) {
                 if ($ev['mask'] == IN_IGNORED) {
                     continue;
@@ -55,14 +56,37 @@ class FileMonitor
                         //continue;
                     }
                     switch ($ev['mask']) {
-                        case IN_CREATE:$this->str = '创建';break;
-                        case IN_CREATE | IN_ISDIR:$this->str = '创建目录';break;
-                        case IN_DELETE:$this->str = '删除';break;
-                        case IN_DELETE | IN_ISDIR:$this->str = '删除目录';break;
-                        case IN_CLOSE_WRITE:$this->str = '修改';break;
-                        case IN_MOVED_FROM:$this->str = '重命名 ' . $ev['name'];break;
-                        case IN_MOVED_TO:$this->str .= ' 为';break;
+                        case IN_CREATE:
+                            $this->case = 'creating';
+                            $this->str = '创建';
+                            break;
+                        case IN_CREATE | IN_ISDIR:
+                            $this->case = 'creating';
+                            $this->str = '创建目录';
+                            break;
+                        case IN_DELETE:
+                            $this->case = 'delete';
+                            $this->str = '删除';
+                            break;
+                        case IN_DELETE | IN_ISDIR:
+                            $this->case = 'delete';
+                            $this->str = '删除目录';
+                            break;
+                        case IN_CLOSE_WRITE:
+                            $this->case = 'created';
+                            $this->str = '修改';
+                            break;
+                        case IN_MOVED_FROM:
+                            $this->case = 'movestart';
+                            $this->str = '重命名 ' . $ev['name'];
+                            break;
+                        case IN_MOVED_TO:
+                            $this->case = 'moveend';
+                            $this->str .= ' 为';
+                            break;
                     }
+
+                    $this->isfolder = IN_ISDIR ? 1 : 0;
 
                     if ($ev['mask'] == IN_MOVED_FROM) {
                         continue;
@@ -74,7 +98,10 @@ class FileMonitor
                     //发生变更的文件
                     $filename = $path . '/' . $ev['name'];
                     if (strstr($filename, '.') && !strstr($ev['mask'], 'CREATE')) {
-                        $this->sendToServer($filename);
+                        $meta['file'] = $filename;
+                        $meta['case'] = $this->case;
+                        $meta['mask'] = $filename;
+                        $this->sendToServer(json_encode($meta, JSON_UNESCAPED_UNICODE));
                     }
                     $this->putLog($log . "\t" . $path . "\t" . $path . '/' . $ev['name']);
 
@@ -88,7 +115,7 @@ class FileMonitor
         SCL:
         $client = new \swoole_client(SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC);
         if (!$client->connect($this->conf['SourceFileServer']['host'], $this->conf['SourceFileServer']['port'], -1)) {
-            echo "connect failed. Error: {$client->errCode}" . PHP_EOL;
+            $this->putLog("connect failed. Error: {$client->errCode}");
             $client->close();
             usleep(100000);
             goto SCL;

@@ -43,3 +43,14 @@ $conf = [
 
  php daemon.php -t s -o stop
 ```
+
+该目录的文件仅为示范，生产环境使用时，还是在工作目录引入。假设文件与vendor目录在同一层。
+
+下面的命令是可以用的
+```
+ cp daemon.php ../../../daemon.php
+ cp hooks_unzipAndMoveSample.php ../../../hooks_unzipAndMove.php
+ cp config.sample.php ../../../config.inc.php
+```
+
+然后对应修改config.inc.php 里面的unzipAndMoveSample 到 unzipAndMove，并针对相应的文件进行调整即可。

@@ -112,7 +112,6 @@ class FileWatch
         while (!$this->stopit) {
             if ($this->keepalive && (!$this->loopslimit || $this->loops+1 <= $this->loopslimit)) {
                 if (!$glob->valid()) {
-                    var_dump(\microtime(true));
                     sleep($this->sleep);
                     $this->count = 0;
                     $this->loops++;
